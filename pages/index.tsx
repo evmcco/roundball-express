@@ -1,86 +1,102 @@
 import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
+import { useState } from 'react'
+import { Player, Team, DraftPosition } from '../types'
+import PlayerCard from '../shared_components'
 
-const Home: NextPage = () => {
+var _players: Array<Player> = []
+for (var i = 1; i <= 50; i++) {
+  let _player: Player = { playerId: i, playerName: `Player ${i}`, picked: false, pickNum: -1 }
+  _players.push(_player);
+}
+
+var _teams: Array<Team> = []
+for (var i = 1; i <= 4; i++) {
+  _teams.push({
+    teamId: i,
+    picks: []
+  });
+}
+
+var _draftOrder: Array<DraftPosition> = []
+for (var i = 1; i <= 8; i++) {
+  if (i % 2 === 1) {
+    //odd numbered draft round, picks go in normal order
+    for (var j = 1; j <= _teams.length; j++) {
+      _draftOrder.push({
+        team: _teams[j - 1],
+        pickOrder: 4 * (i - 1) + j,
+        playerPicked: null
+      })
+    }
+  }
+  else if (i % 2 === 0) {
+    //even numbered draft round, picks go in oppopsite order
+    for (var j = _teams.length; j >= 1; j--) {
+      _draftOrder.push({
+        team: _teams[j - 1],
+        pickOrder: 4 * (i - 1) - (j - 5),
+        playerPicked: null
+      })
+    }
+  }
+}
+
+const Draft: NextPage = () => {
+  const [currentPick, setCurrentPick] = useState(1)
+  const [players, setPlayers] = useState(_players)
+  const [teams, setTeams] = useState(_teams)
+  const [draftOrder, setDraftOrder] = useState(_draftOrder)
+
+  const draftPlayer = (player: Player) => {
+    //when clicking a player, add it to the correct Team and disable picking that player again
+    if (players[player.playerId].picked) {
+      return
+    }
+    console.log(`Current pick: ${currentPick}, Player picked: ${player.playerId} to team ${draftOrder[currentPick - 1].team.teamId}`)
+    players[player.playerId - 1].picked = true
+    let _draftOrder = draftOrder
+    _draftOrder[currentPick - 1].playerPicked = players[player.playerId - 1]
+    setDraftOrder(_draftOrder)
+    const nextPick = currentPick + 1
+    setCurrentPick(nextPick)
+  }
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center">
-        <h1 className="text-6xl font-bold">
-          Welcome to{' '}
-          <a className="text-blue-600" href="https://nextjs.org">
-            Next.js!
-          </a>
-        </h1>
-
-        <p className="mt-3 text-2xl">
-          Get started by editing{' '}
-          <code className="rounded-md bg-gray-100 p-3 font-mono text-lg">
-            pages/index.tsx
-          </code>
-        </p>
-
-        <div className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full">
-          <a
-            href="https://nextjs.org/docs"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Documentation &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Find in-depth information about Next.js features and its API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Learn &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Learn about Next.js in an interactive course with quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Examples &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Discover and deploy boilerplate example Next.js projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Deploy &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+    <div className="font-mono">
+      <h1 className="p-6 text-2xl font-semibold  bg-black text-white">
+        Roundball Express
+      </h1>
+      <div className="flex flex-row">
+        <div className="flex-1 w-1/4 p-6 mb-2 text-2xl font-semibold text-black">
+          Draft Order
+          {draftOrder.map((d) => {
+            return (currentPick === d.pickOrder ?
+              <div className="p-4 my-2 text-base border-solid border-2 border-black rounded bg-orange-500" key={d.pickOrder}>
+                <div className="text-white">Current Pick!</div>
+                <div>{`Team ${d.team.teamId}`}</div>
+                <div>{`Pick ${d.pickOrder}`}</div>
+                <div>{d.playerPicked ? `${d.playerPicked.playerName}` : null}</div>
+              </div> : <div className="p-4 my-2 text-base border-solid border-2 border-black rounded" key={d.pickOrder}>
+                <div>{`Team ${d.team.teamId}`}</div>
+                <div>{`Pick ${d.pickOrder}`}</div>
+                <div>{d.playerPicked ? `${d.playerPicked.playerName}` : null}</div>
+              </div>
+            )
+          })
+          }
         </div>
-      </main>
-
-      <footer className="flex h-24 w-full items-center justify-center border-t">
-        <a
-          className="flex items-center justify-center gap-2"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-        </a>
-      </footer>
+        <div className="flex-1 w-1/4 p-6 mb-2 text-2xl font-semibold text-black">
+          Players
+          {players.map((p) => {
+            return (
+              <PlayerCard player={p} draftPlayer={draftPlayer} />
+            )
+          })
+          }
+        </div >
+      </div>
     </div>
   )
 }
 
-export default Home
+export default Draft
