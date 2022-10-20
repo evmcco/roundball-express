@@ -49,14 +49,16 @@ const Draft: NextPage = () => {
 
   const draftPlayer = (player: Player) => {
     //when clicking a player, add it to the correct Team and disable picking that player again
-    if (players[player.playerId].picked) {
+    if (players[player.playerId - 1].picked) {
       return
     }
-    console.log(`Current pick: ${currentPick}, Player picked: ${player.playerId} to team ${draftOrder[currentPick - 1].team.teamId}`)
+    //set player object as picked
     players[player.playerId - 1].picked = true
+    //update the draft order to reflect the pick
     let _draftOrder = draftOrder
     _draftOrder[currentPick - 1].playerPicked = players[player.playerId - 1]
     setDraftOrder(_draftOrder)
+    //proceed to the next pick
     const nextPick = currentPick + 1
     setCurrentPick(nextPick)
   }
