@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useState } from 'react'
 import { Player, Team, DraftPosition } from '../types'
-import PlayerCard from '../shared_components'
+import PlayerCard from '../components'
 
 var _players: Array<Player> = []
 for (var i = 1; i <= 50; i++) {
@@ -69,9 +69,12 @@ const Draft: NextPage = () => {
         Roundball Express
       </h1>
       <div className="flex flex-row">
-        <div className="flex-1 w-1/4 p-6 mb-2 text-2xl font-semibold text-black">
+        <div className="flex-1 w-1/4 p-6 mb-2 text-2xl font-semibold">
           Draft Order
           {draftOrder.map((d) => {
+            if (d.playerPicked) {
+              return
+            }
             return (currentPick === d.pickOrder ?
               <div className="p-4 my-2 text-base border-solid border-2 border-black rounded bg-orange-500" key={d.pickOrder}>
                 <div className="text-white">Current Pick!</div>
@@ -87,7 +90,7 @@ const Draft: NextPage = () => {
           })
           }
         </div>
-        <div className="flex-1 w-1/4 p-6 mb-2 text-2xl font-semibold text-black">
+        <div className="flex-1 w-1/4 p-6 mb-2 text-2xl font-semibold">
           Players
           {players.map((p) => {
             return (
